@@ -1,0 +1,66 @@
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+    paths:
+      - '**/*.ipynb'  # Trigger only if a .ipynb file is added/modified
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - '**/*.ipynb'  # Trigger only if a .ipynb file is added/modified
+
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  test_environment:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Step 2: Check if env.yml exists
+      - name: Check if env.yml exists
+        id: check_env_yml
+        run: |
+          if [ ! -f env.yml ]; then
+            echo "env.yml not found in the repository. Skipping tests."
+            exit 1
+          fi
+
+      # Step 3: Try building the environment from env.yml
+      - name: Create environment from env.yml
+        id: create_env
+        run: |
+          echo "Creating environment from env.yml..."
+          conda env create -f env.yml || { echo "Failed to create environment"; exit 1; }
+
+      # Step 4: Activate the environment and install necessary dependencies
+      - name: Activate the environment
+        id: activate_env
+        run: |
+          echo "Activating the conda environment..."
+          source $(conda info --base)/etc/profile.d/conda.sh
+          conda activate $(head -n 1 env.yml | cut -d ' ' -f 2)
+
+      # Step 5: Run the notebook in the newly created environment
+      - name: Test Jupyter notebook execution
+        run: |
+          echo "Running Jupyter notebook..."
+          source $(conda info --base)/etc/profile.d/conda.sh
+          conda activate $(head -n 1 env.yml | cut -d ' ' -f 2)
+          jupyter nbconvert --to notebook --execute --inplace --allow-errors your_notebook.ipynb || { echo "Notebook execution failed"; exit 1; }
+
+      # Step 6: Clean up (Optional)
+      - name: Clean up environment
+        run: |
+          echo "Removing conda environment..."
+          conda deactivate
+          conda env remove --name $(head -n 1 env.yml | cut -d ' ' -f 2)
