@@ -1,0 +1,12 @@
+name: Check if env.yml exists
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check if env.yml exists
+      shell: bash
+      run: |
+        if [ ! -f env.yml ]; then
+          echo "env.yml not found in the repository. Skipping tests."
+          exit 1
+        fi
