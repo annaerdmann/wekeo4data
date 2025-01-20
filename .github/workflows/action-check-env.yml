@@ -1,12 +1,38 @@
-name: Check if env.yml exists
+name: Check for environment file
 
 runs:
   using: "composite"
   steps:
-    - name: Check if env.yml exists
+    - name: Extract repository and subdirectory from changed .ipynb file
       shell: bash
       run: |
-        if [ ! -f env.yml ]; then
-          echo "env.yml not found in the repository. Skipping tests."
+        # Get the list of changed files
+        CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+        
+        # Find the first changed .ipynb file and extract its subdirectory
+        NOTEBOOK_FILE=$(echo "$CHANGED_FILES" | grep -m 1 '\.ipynb$')
+        
+        if [ -z "$NOTEBOOK_FILE" ]; then
+          echo "No .ipynb file found in the commit. Skipping checks."
+          exit 1
+        fi
+
+        # Extract the directory of the notebook (e.g., wekeo4data/hda)
+        NOTEBOOK_DIR=$(dirname "$NOTEBOOK_FILE")
+
+        # Extract the base repo name (e.g., wekeo4data) and subrepo name (e.g., hda)
+        BASE_REPO=$(echo "$NOTEBOOK_DIR" | cut -d'/' -f1)
+        SUBREPO=$(echo "$NOTEBOOK_DIR" | cut -d'/' -f2)
+
+        echo "Detected repository: $BASE_REPO"
+        echo "Detected subrepo: $SUBREPO"
+
+        # Check for env.yml or <subrepo>_env.yml in the base repo directory
+        if [ -f "$BASE_REPO/env.yml" ]; then
+          echo "env.yml found in $BASE_REPO."
+        elif [ -f "$BASE_REPO/${SUBREPO}_env.yml" ]; then
+          echo "${SUBREPO}_env.yml found in $BASE_REPO."
+        else
+          echo "Neither env.yml nor ${SUBREPO}_env.yml found in $BASE_REPO. Skipping tests."
           exit 1
         fi
