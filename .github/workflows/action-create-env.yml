@@ -1,0 +1,10 @@
+name: Create environment from env.yml
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create environment from env.yml
+      shell: bash
+      run: |
+        echo "Creating environment from env.yml..."
+        conda env create -f env.yml || { echo "Failed to create environment"; exit 1; }
