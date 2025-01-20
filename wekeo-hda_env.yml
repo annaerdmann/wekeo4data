@@ -1,0 +1,8 @@
+name: wekeo-hda-env
+channels:
+  - defaults
+dependencies:
+  - python=3.11.6
+  - requests=2.32.3
+  - hda=2.21
+  - ipykernel=6.29.5
