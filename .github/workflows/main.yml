@@ -1,0 +1,39 @@
+name: Test Jupyter Notebook Environment
+
+on:
+  push:
+    paths:
+      - '**/*.ipynb'  # Trigger only if a .ipynb file is added/modified
+  pull_request:
+    paths:
+      - '**/*.ipynb'  # Trigger only if a .ipynb file is added/modified
+
+jobs:
+  test_environment:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Step 2: Check if env.yml exists (using action)
+      - name: Check if env.yml exists
+        uses: ./actions/action-check-env.yml
+
+      # Step 3: Create the environment from env.yml (using action)
+      - name: Create environment from env.yml
+        uses: ./actions/action-create-env.yml
+
+      # Step 4: Activate the environment (using action)
+      - name: Activate the conda environment
+        uses: ./actions/action-activate-env.yml
+
+      # Step 5: Test Jupyter notebook execution (using action)
+      - name: Test Jupyter notebook execution
+        uses: ./actions/action-test-notebook.yml
+
+      # Step 6: Revert the commit if the test failed (using action)
+      - name: Revert commit if tests failed
+        if: failure()  # Only runs if the previous steps failed
+        uses: ./actions/action-revert-commit.yml
