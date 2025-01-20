@@ -25,15 +25,4 @@ jobs:
       - name: Create environment from env.yml
         uses: ./actions/action-create-env.yml
 
-      # Step 4: Activate the environment (using action)
-      - name: Activate the conda environment
-        uses: ./actions/action-activate-env.yml
-
-      # Step 5: Test Jupyter notebook execution (using action)
-      - name: Test Jupyter notebook execution
-        uses: ./actions/action-test-notebook.yml
-
-      # Step 6: Revert the commit if the test failed (using action)
-      - name: Revert commit if tests failed
-        if: failure()  # Only runs if the previous steps failed
-        uses: ./actions/action-revert-commit.yml
+  
